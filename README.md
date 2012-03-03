@@ -13,6 +13,8 @@ Google Chrome's Native Client module used by FileSafr that provides AES block ci
 
 ## BUILD
 
+Build should be done using the `glibc` toolchain instead of `newlib` version.
+
 ```
 $ export NACL_SDK_ROOT /path/to/naclsdk
 $ export NACL_TARGET_PLATFORM pepper_17
