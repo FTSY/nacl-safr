@@ -1,0 +1,6 @@
+﻿*.o
+*.nexe
+*.nmf
+.sconsign.dblite
+dbg_*
+opt_*
