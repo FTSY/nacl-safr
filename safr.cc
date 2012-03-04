@@ -35,11 +35,27 @@ void SafrInstance::HandleMessage(const pp::Var& var_message) {
             PostMessage("FAIL");
         }
     } else {
-        std::string str = var_message.AsString();
-        const char* tmp = str.c_str();
-        PostMessage(tmp);
-        sha1sum(tmp);
-        md5sum(tmp);
+        Json::Value data;
+        Json::Reader reader;
+        bool parsed = reader.parse(var_message.AsString().c_str(), data);
+        if (!parsed) {
+            return;
+        }
+
+        std::string action = data.get("action", "").asString();
+        if (action == "md5") {
+            std::string str = data.get("text", "").asString();
+            if (str.empty()) return;
+
+            const char* tmp = str.c_str();
+            md5sum(tmp);
+        } else if (action == "sha1") {
+            std::string str = data.get("text", "").asString();
+            if (str.empty()) return;
+
+            const char* tmp = str.c_str();
+            sha1sum(tmp);
+        }
     }
 }
 
@@ -48,12 +64,12 @@ bool SafrInstance::register_algs() {
     if (register_hash(&sha1_desc) == -1) return false;
     if (register_hash(&sha256_desc) == -1) return false;
     if (register_hash(&md5_desc) == -1) return false;
-    
+
     aes_idx = find_cipher("aes");
     sha1_idx = find_hash("sha1");
     sha256_idx = find_hash("sha256");
     md5_idx = find_hash("md5");
-    
+
     return true;
 }
 
@@ -66,11 +82,11 @@ bool SafrInstance::test() {
 }
 
 void SafrInstance::crypt (const char* salt, const char* text) {
-    if (aes_idx == -1) return;
-    
+    if ((aes_idx == -1) || (sha256_idx == -1)) return;
+
     ivsize = cipher_descriptor[aes_idx].block_length;
     ks = hash_descriptor[sha256_idx].hashsize;
-    if (cipher_descriptor[aes_idx].keysize(&ks) != CRYPT_OK) { 
+    if (cipher_descriptor[aes_idx].keysize(&ks) != CRYPT_OK) {
         return;
     }
 }
@@ -80,16 +96,16 @@ void SafrInstance::decrypt (const char* salt, const char* str) {
 
 void SafrInstance::sha1sum (const char* text) {
     if (sha1_idx == -1) return;
-    
-    unsigned char tmp[16];
+
+    unsigned char tmp[20];
     hash_descriptor[sha1_idx].init(&md);
     hash_descriptor[sha1_idx].process(&md, (unsigned char *)text,strlen(text));
     hash_descriptor[sha1_idx].done(&md, tmp);
-    
+
     char buffer[32] = "";
-    char str[2];
-    for (x = 0; x < (int)hash_descriptor[sha1_idx].hashsize; x++) {
-        sprintf(str, "%02x",tmp[x]);
+    char str[4];
+    for (i = 0; i < (int)hash_descriptor[sha1_idx].hashsize; i++) {
+        sprintf(str, "%02x",tmp[i]);
         strcat(buffer, str);
     }
     PostMessage(buffer);
@@ -97,16 +113,16 @@ void SafrInstance::sha1sum (const char* text) {
 
 void SafrInstance::md5sum (const char* text) {
     if (md5_idx == -1) return;
-    
+
     unsigned char tmp[16];
     hash_descriptor[md5_idx].init(&md);
     hash_descriptor[md5_idx].process(&md, (unsigned char *)text,strlen(text));
     hash_descriptor[md5_idx].done(&md, tmp);
-    
+
     char buffer[32] = "";
-    char str[2];
-    for (x = 0; x < (int)hash_descriptor[md5_idx].hashsize; x++) {
-        sprintf(str, "%02x",tmp[x]);
+    char str[4];
+    for (i = 0; i < (int)hash_descriptor[md5_idx].hashsize; i++) {
+        sprintf(str, "%02x",tmp[i]);
         strcat(buffer, str);
     }
     PostMessage(buffer);

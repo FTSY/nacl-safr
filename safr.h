@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <string>
 #include <tomcrypt.h>
+#include <json/json.h>
 #include "ppapi/cpp/instance.h"
 #include "ppapi/cpp/module.h"
 #include "ppapi/cpp/var.h"
@@ -33,17 +34,17 @@ class SafrInstance : public pp::Instance {
     explicit SafrInstance(PP_Instance instance) : pp::Instance(instance) {};
     virtual ~SafrInstance() {};
     void HandleMessage(const pp::Var& var_message);
- 
+
   private:
     unsigned char plaintext[512],ciphertext[512];
     unsigned char tmpkey[512], key[MAXBLOCKSIZE], IV[MAXBLOCKSIZE];
     unsigned char inbuf[512]; /* i/o block size */
     unsigned long outlen, ivsize, x, y, z;
     symmetric_CTR ctr;
-    int sha1_idx, sha256_idx, md5_idx, aes_idx, ks;
+    int sha1_idx, sha256_idx, md5_idx, aes_idx, ks, i, j, k;
     unsigned long w;
     hash_state md;
-    
+
     bool register_algs();
     bool test();
     void crypt (const char* salt, const char* text);

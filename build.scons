@@ -12,7 +12,7 @@ nacl_env = make_nacl_env.NaClEnvironment(
     use_c_plus_plus_libs=True, nacl_platform=os.getenv('NACL_TARGET_PLATFORM'))
 
 nacl_env.Append(
-        LIBS=['tomcrypt']
+        LIBS=['tomcrypt', 'jsoncpp']
     )
     
 sources = ['safr.cc']
